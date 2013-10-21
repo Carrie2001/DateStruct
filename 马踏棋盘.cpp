@@ -31,6 +31,16 @@ struct Queue
 		head=rear=NULL;
 		length=0;
 	}
+	~Queue()//析构函数
+	{
+		while(!empty())
+		{
+			node *pTemp;
+			pTemp=head;
+			head=head->next;
+			delete pTemp;
+		}
+	}
 	void push(node v)//插入队尾
 	{
 		if(rear==NULL)
@@ -99,6 +109,12 @@ void Solve()
 		if(x<0||y<0)
 		{
 			return;
+		}
+		if(x>=8||y>=8)
+		{
+			cout<<"越界"<<endl;
+			cout<<"请输入起始点X,Y（X<0||Y<0结束程序）"<<endl;
+			continue;
 		}
 		Queue q;
 		node now,next;
