@@ -4,156 +4,132 @@
 #include <cmath>
 #include <cstdlib>
 #include<cstring>
+#include<algorithm>
+#include<stack>
 using namespace std;
 const int MAXN=10;
 int map[MAXN][MAXN];//存棋盘
 bool used[MAXN][MAXN];//保存已经访问过的点
 int dir[8][2]={-2,1,-1,2,1,2,2,1,2,-1,1,-2,-1,-2,-2,-1};//方向
-void Init()//初始化棋盘
+struct Dir
 {
-	memset(map,0,sizeof(map));
-	memset(used,0,sizeof(used));
-}
+	int i;
+	int num;
+};//保存方向
 struct node
 {
 	int x,y;//存放马的位置
 	int steps;//保存编号
-	node *next;
-	node(){next=NULL;}//初始化节点
+	Dir dir[8];//保存8个方向的出口个数
+	int nextI;
 };//节点结构体
-struct Queue
+node sta[64];//模拟栈
+bool cmp(Dir a,Dir b)//比较函数
 {
-	node *head;//队首
-	node *rear;//队尾
-	int length;//队列长度
-	Queue()//构造函数
+	return a.num<b.num;
+}
+int getDir(int x,int y)//算出当前方格的出口数
+{
+	int nextX,nextY;
+	int ans=0;
+	for(int i=0;i<8;i++)
 	{
-		head=rear=NULL;
-		length=0;
-	}
-	~Queue()//析构函数
-	{
-		while(!empty())
+		nextX=x+dir[i][0];
+		nextY=y+dir[i][1];
+		if(!used[nextX][nextY]&&nextX>=0&&nextX<8&&nextY>=0&&nextY<8)
 		{
-			node *pTemp;
-			pTemp=head;
-			head=head->next;
-			delete pTemp;
+			ans++;
 		}
 	}
-	void push(node v)//插入队尾
-	{
-		if(rear==NULL)
-		{
-			head=rear=new node();
-			*rear=v;
-			length++;
-			return;
-		}
-		rear->next=new node();
-		rear=rear->next;
-		length++;
-		*(rear)=v;
-		rear->next=NULL;
-		return;
-	}
-	bool empty()//判断队列是否空
-	{
-		if(head==NULL)
-		{
-			return true;
-		}
-		return false;
-	}
-	node front()//返回队首
-	{
-		if(empty())
-		{
-			cout<<"erro"<<endl;
-			exit(-1);
-		}
-		return *head;
-	}
-	void pop()//抛出队首
-	{
-		if(empty())
-		{
-			cout<<"erro"<<endl;
-			exit(-1);
-		}
-		if(rear==head)//特判
-		{
-			delete head;
-			rear=head=NULL;
-		}
-		else
-		{
-			node *pTemp=head;
-			head=head->next;
-			delete pTemp;
-		}
-		length--;
-	}
-	int size()//返回队列元素个数
-	{
-		return length;
-	}
-};
-void Solve()
+	return ans;
+}
+void Solve()//解决问题
 {
 	int x,y;
-	cout<<"请输入起始点X,Y（X<0||Y<0结束程序）"<<endl;
-	while (cin>>x>>y)
+	cout<<"请输入坐标（x<0||y<0退出）"<<endl;
+	while(cin>>x>>y)
 	{
-		Init();//初始化
 		if(x<0||y<0)
 		{
-			return;
+			break;
 		}
 		if(x>=8||y>=8)
 		{
 			cout<<"越界"<<endl;
-			cout<<"请输入起始点X,Y（X<0||Y<0结束程序）"<<endl;
+			cout<<"请输入坐标（x<0||y<0退出）"<<endl;
 			continue;
 		}
-		Queue q;
-		node now,next;
+		memset(map,0,sizeof(map));//初始化地图和标记
+		memset(used,0,sizeof(used));
+		int top=0;//栈头
+		node now,next;//当前形态，下一形态
 		now.x=x;
 		now.y=y;
-		used[x][y]=1;//节点已被访问
-		int steps=0;
-		now.steps=steps++;
-		q.push(now);
-		while (!q.empty())
+		used[x][y]=1;
+		now.steps=1;
+		for(int i=0;i<8;i++)
 		{
-			now=q.front();
-			q.pop();
-			map[now.x][now.y]=now.steps;
-			for(int i=0;i<8;i++)
+			now.dir[i].i=i;
+		}
+		now.nextI=0;
+		sta[top]=now;//入栈
+		while(top>=0)
+		{
+			now=sta[top];
+			map[now.x][now.y]=now.steps;//地图标记
+			if(now.steps==64)//结束判断
 			{
-				next.x=now.x+dir[i][0];
-				next.y=now.y+dir[i][1];
-				if(!used[next.x][next.y]&&next.x>=0&&next.x<8&&next.y>=0&&next.y<8)
+				break;
+			}
+			int i;
+			for(i=now.nextI;i<8;i++)
+			{
+				next.x=now.x+dir[now.dir[i].i][0];
+				next.y=now.y+dir[now.dir[i].i][1];
+				next.steps=now.steps+1;//马的下一步
+				if(!used[next.x][next.y]&&next.x>=0&&next.x<8&&next.y>=0&&next.y<8)//判断是否可跳
 				{
-					used[next.x][next.y]=1;
-					next.steps=steps++;
-					q.push(next);
+					used[next.x][next.y]=true;
+					for(int j=0;j<8;j++)
+					{
+						next.dir[j].i=j;
+						int tempX,tempY;
+						tempX=next.x+dir[j][0];
+						tempY=next.y+dir[j][1];
+						if(used[tempX][tempY]||tempX<0||tempX>=8||tempY<0||tempY>=8)
+						{
+							next.dir[j].num=9;
+						}
+						else
+						{
+							next.dir[j].num=getDir(tempX,tempY);
+						}
+					}
+					sort(next.dir,next.dir+8,cmp);//贪心策略，将下一步按出口数排序
+					next.nextI=0;
+					sta[top].nextI=i+1;//改变栈顶方向寻找的起始点
+					top++;
+					sta[top]=next;//入栈
+					break;
 				}
 			}
+			if(i==8)//当前状态找不到解，退栈
+			{
+				used[now.x][now.y]=false;
+				map[now.x][now.y]=0;
+				top--;
+			}
 		}
-		for(int i=0;i<8;i++)
+		for(int i=0;i<8;i++)//输出答案
 		{
 			for(int j=0;j<8;j++)
 			{
-				if(j)
-				{
-					cout<<' ';
-				}
+				if(j)cout<<' ';
 				cout<<map[i][j];
 			}
 			cout<<endl;
 		}
-		cout<<"请输入起始点X,Y（X<0||Y<0结束程序）"<<endl;
+		cout<<"请输入坐标（x<0||y<0退出）"<<endl;
 	}
 }
 int main()
