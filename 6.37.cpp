@@ -69,6 +69,7 @@ void Solve(){
 	}
 	cout<<endl;
 	system("pause");
+	mp.clear();
 }
 int main(){
 	Solve();
