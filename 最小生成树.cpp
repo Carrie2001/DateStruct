@@ -8,11 +8,13 @@ const int maxn=100000;//最大点数
 struct node
 {
 	int s,e,len;//起点，终点，路的长度
+	bool operator < (const node &v)const{
+		return len<v.len;
+	}
+	bool operator == (const node &v)const{
+		return len==v.len;
+	}
 };
-bool cmp(node a,node b)//比较函数
-{
-	return a.len<b.len;
-}
 node road[maxn];//保存路径
 int set[maxn],height[maxn];//set集合,height为树的深度
 void Init(int n)//初始化
@@ -22,6 +24,40 @@ void Init(int n)//初始化
 		set[i]=i;
 		height[i]=1;
 	}
+}
+template<class T>
+void sort(T *a,int l,int r){//快速排序
+	if(l>=r){
+		return;
+	}
+	if(l==r-1){
+		if(a[r]<a[l]){
+			T temp=a[l];
+			a[l]=a[r];
+			a[r]=temp;
+		}
+		return;
+	}
+	T k,temp;
+	int i,j;
+	k=a[l];
+	i=l,j=r;
+	while(i<j){
+		while(i<j&&(k<a[j]||k==a[j])){
+			j--;
+		}
+		temp=a[j];
+		a[j]=a[i];
+		a[i]=temp;
+		while(i<j&&(a[i]<k||a[i]==k)){
+			i++;
+		}
+		temp=a[i];
+		a[j]=a[i];
+		a[i]=temp;
+	}
+	sort(a,l,i-1);
+	sort(a,i+1,r);
 }
 int find(int x)//查找x的根
 {
@@ -48,7 +84,7 @@ void Bin(int a,int b)//并操作
 }
 int Kruskal(int n,int m)//求解最小生成树
 {
-	sort(road,road+m,cmp);
+	sort(road,0,m-1);
 	int ans=0;
 	Init(n);
 	for(int i=0;i<m;i++){
