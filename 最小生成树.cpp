@@ -64,7 +64,7 @@ int find(int x)//查找x的根
 	if(x==set[x]){
 		return x;
 	}
-	return x=find(set[x]);
+	return set[x]=find(set[x]);
 }
 void Bin(int a,int b)//并操作
 {
