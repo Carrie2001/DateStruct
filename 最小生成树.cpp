@@ -16,14 +16,10 @@ struct node
 	}
 };
 node road[maxn];//保存路径
-int set[maxn],height[maxn];//set集合,height为树的深度
+int set[maxn];//set集合
 void Init(int n)//初始化
 {
-	for(int i=0;i<=n;i++)
-	{
-		set[i]=i;
-		height[i]=1;
-	}
+	memset(set,-1,sizeof(int)*n);
 }
 template<class T>
 void sort(T *a,int l,int r){//快速排序
@@ -52,7 +48,7 @@ void sort(T *a,int l,int r){//快速排序
 		while(i<j&&(a[i]<k||a[i]==k)){
 			i++;
 		}
-		temp=a[i];
+		temp=a[j];
 		a[j]=a[i];
 		a[i]=temp;
 	}
@@ -61,7 +57,7 @@ void sort(T *a,int l,int r){//快速排序
 }
 int find(int x)//查找x的根
 {
-	if(x==set[x]){
+	if(set[x]<0){
 		return x;
 	}
 	return set[x]=find(set[x]);
@@ -70,15 +66,15 @@ void Bin(int a,int b)//并操作
 {
 	a=find(a),b=find(b);
 	if(a!=b){
-		if(height[a]>height[b]){
+		if(set[a]<set[b]){
 			set[b]=a;
 		}
-		else if(height[a]<height[b]){
+		else if(set[a]>set[b]){
 			set[a]=b;
 		}
 		else{
 			set[b]=a;
-			height[a]++;
+			set[a]--;
 		}
 	}
 }
